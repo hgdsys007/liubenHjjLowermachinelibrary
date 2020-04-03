@@ -1,5 +1,8 @@
 package com.higer.lowermachinelibrary.functionBlock.imp.matcher;
 
+import com.higer.lowermachinelibrary.adas.AdasGpsUtil;
+import com.higer.lowermachinelibrary.adas.AdasWriter;
+import com.higer.lowermachinelibrary.adas.RealTimeCmd;
 import com.higer.lowermachinelibrary.entity.DoubleGps;
 import com.higer.lowermachinelibrary.functionBlock.IGpsContext;
 import com.higer.lowermachinelibrary.functionBlock.IMatcher;
@@ -177,10 +180,8 @@ final public class GpsBanTeamDataMatcher implements IMatcher {
                                         currentGpsPoint.setGpsGd(gpggaVehicleGps.getGpsGd());
 
 
-//                                        if(!isHeadGps)
-//                                        {
-//                                            Logger.writeLog("-------------2 "+currentGpsPoint.getGpsTime());
-//                                        }
+
+
                                     }
                                 } else {
                                     gpggaParser = new GpggaPaser();

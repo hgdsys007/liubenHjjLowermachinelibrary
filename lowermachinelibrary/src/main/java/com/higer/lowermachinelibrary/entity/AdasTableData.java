@@ -41,7 +41,7 @@ public class AdasTableData {
 
     public String toString()
     {
-        String res=dateStr+"  "+eventName+"   "+imagePath;
+        String res=eventName+","+imagePath;
         return res;
     }
 }

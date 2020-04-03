@@ -72,12 +72,12 @@ final public class McuCmdMatcher implements IMatcher {
                 VehicleMsg msg = new VehicleMsg();
                 msg.setCode(100);
                 msg.setMsg("设置成功");
-                ErrorMessageUtil.getInstance().notifyMsg(msg);
+                ErrorMessageUtil.getInstance().notifyError(msg);
             }else{
                 VehicleMsg msg = new VehicleMsg();
                 msg.setCode(100);
                 msg.setMsg("设置失败");
-                ErrorMessageUtil.getInstance().notifyMsg(msg);
+                ErrorMessageUtil.getInstance().notifyError(msg);
             }
         }
     }

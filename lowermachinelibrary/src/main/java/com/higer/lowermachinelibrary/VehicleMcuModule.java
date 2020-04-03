@@ -3,6 +3,7 @@ package com.higer.lowermachinelibrary;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 
+import com.higer.lowermachinelibrary.adas.AdasWriter;
 import com.higer.lowermachinelibrary.log.LogThread;
 import com.higer.lowermachinelibrary.log.Logger;
 import com.higer.lowermachinelibrary.statics.Cache;
@@ -81,7 +82,7 @@ final public class VehicleMcuModule implements VehicleMcuModuleInterface {
             VehicleMsg msg = new VehicleMsg();
             msg.setCode(2);
             msg.setMsg("base.jar  版本不匹配");
-            ErrorMessageUtil.getInstance().notifyMsg(msg);
+            ErrorMessageUtil.getInstance().notifyError(msg);
 
             return false;
         }
@@ -106,8 +107,8 @@ final public class VehicleMcuModule implements VehicleMcuModuleInterface {
             if (value != null) {
                 if (value.equals("0"))//网络获
                 {
-                    startUdpServer();
-              //      startTcpServer();
+               //     startUdpServer();
+                  startTcpServer();
                 }  else if (value.equals("2"))//通过蓝牙获取下位机数据
                 {
                     if (startBluetooth()) {
@@ -144,9 +145,6 @@ final public class VehicleMcuModule implements VehicleMcuModuleInterface {
 //0表示不启用 1表示启用
     @Override
     public boolean doMcuControl(VehicleMcuControl vehicleMcuControl) {
-
-
-
         byte[] data = vehicleMcuControl.getData();
         switch (vehicleMcuControl.getType()) {
             case 0://0表示场地盒控制
@@ -204,6 +202,12 @@ final public class VehicleMcuModule implements VehicleMcuModuleInterface {
                 Logger.writeLog("给下位机下发参数："+strParm);
                 //  Config.isSetMcuParmOk=false;
                 VirtualTcpOutput.getInstance().wirte(CmdUtil.makeControlCmd("SSetIODly", strParm));//添加启动指令
+                break;
+            case 10://启动ADAS功能：
+                AdasWriter.getInstance().write("".getBytes());
+                break;
+            case 11://关闭ADAS功能：
+                AdasWriter.getInstance().write("".getBytes());
                 break;
         }
         return true;

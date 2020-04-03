@@ -3,8 +3,12 @@ package com.higer.lowermachinelibrary.functionBlock.imp.matcher;
 import com.higer.lowermachinelibrary.functionBlock.IMatcher;
 import com.higer.lowermachinelibrary.log.Logger;
 import com.higer.lowermachinelibrary.statics.Config;
+import com.higer.lowermachinelibrary.utils.ErrorMessageUtil;
 import com.higer.lowermachinelibrary.utils.StringHexUtil;
 import com.higer.lowermachinelibrary.virtualIo.VirtualCom5Io;
+
+import cn.base.entity.VehicleInput;
+import cn.base.entity.VehicleMsg;
 
 //扫描枪
 public final class Hgccom7Matcher implements IMatcher {
@@ -29,11 +33,22 @@ public final class Hgccom7Matcher implements IMatcher {
 
 
 
-        byte[] data=new byte[iLen-HEADER_LEN];
-        System.arraycopy(buffer,HEADER_LEN,data,0,iLen-HEADER_LEN);
+
+//        byte[] data=new byte[iLen-HEADER_LEN];
+//        System.arraycopy(buffer,HEADER_LEN,data,0,iLen-HEADER_LEN);
+//        System.out.println("扫描枪数据---"+StringHexUtil.ArraytoAsciiString(data,0,iLen-HEADER_LEN));
 
 
-        System.out.println("扫描枪数据---"+StringHexUtil.ArraytoAsciiString(data,0,iLen-HEADER_LEN));
+        //把数据通知给 任海涛
+        String smsg=StringHexUtil.ArraytoAsciiString(buffer,HEADER_LEN,iLen-HEADER_LEN);
+        System.out.println("扫描枪数据---"+smsg);
+
+        VehicleInput vehicleInput = new VehicleInput();
+        vehicleInput.setType(200);
+        vehicleInput.setData(smsg.getBytes());//扫描枪数据
+        ErrorMessageUtil.getInstance().notifyMsg(vehicleInput);
+
+
         // Logger.writeLog(ArraytoHexString(data));
 //        VirtualCom5Io.getInstance().output(data);//直接输送到  虚拟IO口中去
     }

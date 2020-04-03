@@ -8,9 +8,59 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@mipmap/background"
         android:orientation="vertical">
 
-        <LinearLayout
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/barHeight"
+            android:padding="@dimen/marginLen"
+            android:background="@color/titleBackColor"
+            android:id="@+id/id_video_bar"
+            android:layout_alignParentTop="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentLeft="true"
+                android:textSize="@dimen/bar_text_size"
+                android:gravity="center"
+                android:text="@string/vidoeTitle"
+                android:textColor="@color/white">
+            </TextView>
+
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentRight="true"
+                android:id="@+id/id_btn_back"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:textSize="@dimen/bar_text_size"
+                    android:id="@+id/txtfanhui"
+                    android:layout_alignParentRight="true"
+                    android:gravity="center"
+                    android:text="@string/btn_back"
+                    android:textColor="@color/white"/>
+
+
+             <ImageView
+                  android:layout_width="@dimen/backImgW"
+                  android:layout_height="@dimen/backImgH"
+                  android:layout_centerVertical="true"
+android:paddingRight="5dp"
+                 android:layout_toLeftOf="@id/txtfanhui"
+                  android:adjustViewBounds="true"
+                  android:id="@+id/id_img_jh"
+                  android:src="@mipmap/hjj_back"
+                  android:scaleType="fitCenter"/>
+
+            </RelativeLayout>
+        </RelativeLayout>
+
+ <!--       <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:id="@+id/id_bottom"
@@ -44,12 +94,136 @@
                 android:text="切换4">
 
             </Button>
-        </LinearLayout>
+        </LinearLayout>-->
+
+
+
+
+
+
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/bottom_bar_h"
+            android:layout_margin="5dp"
+            android:orientation="horizontal"
+
+            android:id="@+id/id_bottom"
+            android:layout_alignParentBottom="true">
+
+
+
+            <RadioButton
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:checked="true"
+                android:layout_height="match_parent"
+                android:id="@+id/id_bm_radio2"
+                android:layout_marginLeft="1dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:background="@drawable/rounded_rectangle"
+                android:gravity="center"
+                android:button="@null"
+                android:text="人气"/>
+            <RadioButton
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:id="@+id/id_bm_radio3"
+                android:layout_marginLeft="1dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:gravity="center"
+                android:background="@drawable/radio_style"
+                android:button="@null"
+                android:text="距离"/>
+            <RadioButton
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:id="@+id/id_bm_radio4"
+                android:layout_marginLeft="1dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:gravity="center"
+                android:background="@drawable/radio_style"
+                android:button="@null"
+                android:text="价格"/>
+
+            <RadioButton
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:id="@+id/id_bm_radio5"
+                android:layout_marginLeft="1dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:gravity="center"
+                android:background="@drawable/radio_style"
+                android:button="@null"
+                android:text="人气"/>
+            <RadioButton
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:id="@+id/id_bm_radio6"
+                android:layout_marginLeft="1dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:gravity="center"
+                android:background="@drawable/radio_style"
+                android:button="@null"
+                android:text="距离"/>
+            <RadioButton
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:id="@+id/id_bm_radio7"
+                android:layout_marginLeft="1dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:background="@drawable/radio_style"
+                android:gravity="center"
+                android:button="@null"
+                android:text="价格"/>
+        </RadioGroup>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         <SurfaceView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_above="@id/id_bottom"
+            android:layout_below="@+id/id_video_bar"
             ></SurfaceView>
     </RelativeLayout>
 

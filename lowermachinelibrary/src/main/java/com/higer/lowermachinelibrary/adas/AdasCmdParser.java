@@ -5,8 +5,13 @@ import android.util.Log;
 import com.higer.lowermachinelibrary.entity.AdasTableData;
 import com.higer.lowermachinelibrary.statics.Config;
 import com.higer.lowermachinelibrary.threads.BaseThread;
+import com.higer.lowermachinelibrary.utils.ErrorMessageUtil;
+import com.higer.lowermachinelibrary.utils.StringHexUtil;
 
 import java.io.OutputStream;
+
+import cn.base.entity.VehicleInput;
+import cn.base.entity.VehicleMsg;
 
 public class AdasCmdParser extends BaseThread {
     protected final byte CMD_FLAG = (byte)0X7E;
@@ -235,6 +240,7 @@ public class AdasCmdParser extends BaseThread {
         System.out.println("======================="+imagePath);
         if(isAdas)
         {
+            baseInt=100;
             switch (eventType)
             {
                 case 0x01:
@@ -244,15 +250,18 @@ public class AdasCmdParser extends BaseThread {
                     Log.i("234","前向碰撞报警(请注意车距)");
                     break;
                 case 0x02:
+
                     switch (plType)
                     {
                         case 0x01:
+                            baseInt+=5;
                             adasTableData.setEventName("左侧车道偏离报警");
                             adasTableData.setImagePath(imagePath);
                             //                                                                MyApplication.getInstance().addAdasData(adasTableData);
                             Log.i("234","左侧车道偏离报警");
                             break;
                         case 0x02:
+                            baseInt+=6;
                             adasTableData.setEventName("右侧车道偏离报警");
                             adasTableData.setImagePath(imagePath);
                             //                                                               MyApplication.getInstance().addAdasData(adasTableData);
@@ -305,6 +314,7 @@ public class AdasCmdParser extends BaseThread {
 //            0x05：驾驶员 异常报警
 //            0x10 ：主动抓拍事件
 //            0x11 ：驾驶员变更 事件
+            baseInt=120;
             switch (eventType)
             {
                 case 0x01:
@@ -365,9 +375,21 @@ public class AdasCmdParser extends BaseThread {
             }
         }
 
+        senRenMsg(baseInt+eventType,adasTableData.getImagePath());
         System.out.println("=================  "+adasTableData.toString());//打印内容   驶员异常报警---遮挡   /mnt/sdcard/adas/k77G_0_1353.jpg
 
         doMedia(waisheCode,cmdArray,iLen);//取证
+    }
+
+    int baseInt;
+    //给任海涛发数据
+    private void senRenMsg(int code,String strMsg)
+    {
+        //把数据通知给 任海涛
+        VehicleInput vehicleInput = new VehicleInput();
+        vehicleInput.setType(code);
+        vehicleInput.setData(strMsg.getBytes());//mnt/sdcard/adas/k77G_0_1353.jpg
+        ErrorMessageUtil.getInstance().notifyMsg(vehicleInput);
     }
     //事件 /报
     private void parseGnm36(boolean isAdas,byte[] cmdArray,int iLen)

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#ffffff</color>
+    <color name="toumingbeijing">#2d6177</color>
+    <color name="titleBackColor">#293b5d</color>
+    <color name="btn_selected_color">#6eaded</color>
+</resources>

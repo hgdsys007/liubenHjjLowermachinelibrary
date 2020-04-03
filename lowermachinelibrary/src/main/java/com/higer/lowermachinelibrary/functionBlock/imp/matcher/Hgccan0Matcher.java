@@ -1,5 +1,8 @@
 package com.higer.lowermachinelibrary.functionBlock.imp.matcher;
 
+import com.higer.lowermachinelibrary.adas.AdasGpsUtil;
+import com.higer.lowermachinelibrary.adas.AdasWriter;
+import com.higer.lowermachinelibrary.adas.RealTimeCmd;
 import com.higer.lowermachinelibrary.entity.Frame;
 import com.higer.lowermachinelibrary.functionBlock.IMatcher;
 import com.higer.lowermachinelibrary.functionBlock.IParser;
@@ -46,6 +49,11 @@ final public class Hgccan0Matcher  implements IMatcher {
                 {
                     System.out.println("LEVEL2 --- "+frame.toString());
                     VirtualCan0Io.getInstance().output(frame);
+
+               //     senAdas((byte) 40);//给ADAS 发送 测速 数据
+
+
+
                 }else {
                     Logger.writeLog("CAN0 Hgccan0Matcher::parseBuffer  帧数据解析失败");
                 }
@@ -55,6 +63,14 @@ final public class Hgccan0Matcher  implements IMatcher {
         }
     }
 
+
+
+    RealTimeCmd cmd=new RealTimeCmd();
+    private void senAdas(byte speed)//给ADAS 发送 测速 数据
+    {
+        cmd.setParm(speed);
+        AdasWriter.getInstance().write(cmd.getCmd());
+    }
 
 
 }

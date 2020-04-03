@@ -1,0 +1,23 @@
+<resources>
+    <dimen name="activity_padding">5dp</dimen>
+
+    <dimen name="barHeight">76dp</dimen>
+    <dimen name="backImgH">27dp</dimen>
+    <dimen name="backImgW">31dp</dimen>
+
+    <dimen name="marginLen">15dp</dimen>
+    <dimen name="bar_text_size">25sp</dimen>
+
+
+
+    <dimen name="bottom_bar_h">100dp</dimen>
+
+
+
+
+
+    <!--      <dimen name="huifang_shocktable_cell2_width">370dp</dimen>
+       <dimen name="huifang_shocktable_cell3_width">370dp</dimen>
+       <dimen name="huifang_shocktable_cell4_width">0dp</dimen>-->
+
+</resources>

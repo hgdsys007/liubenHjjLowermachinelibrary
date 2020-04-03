@@ -32,6 +32,7 @@ public final class AdasService extends AdasCmdParser implements QuzhengCmdInterf
     private void setQuzheng()
     {
         setQuzhengCmdInterface(this);
+        AdasWriter.getInstance().setQuzhengCmdInterface(this);
     }
 
     @Override
@@ -118,8 +119,8 @@ public final class AdasService extends AdasCmdParser implements QuzhengCmdInterf
 
 
     @Override
-    public void quzhengCmdArray(byte[] cmdArray) {
-        System.out.println("ADAS_SERVICE    "+ArraytoHexString(cmdArray));
+   synchronized public void quzhengCmdArray(byte[] cmdArray) {
+     //   System.out.println("ADAS_SERVICE    "+ArraytoHexString(cmdArray));
         if((outputStream!=null)&&(cmdArray!=null))
         {
             try {
