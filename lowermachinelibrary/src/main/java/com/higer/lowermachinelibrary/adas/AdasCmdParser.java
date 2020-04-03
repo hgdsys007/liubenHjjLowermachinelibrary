@@ -9,6 +9,11 @@ import com.higer.lowermachinelibrary.utils.ErrorMessageUtil;
 import com.higer.lowermachinelibrary.utils.StringHexUtil;
 
 import java.io.OutputStream;
+import java.sql.Array;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import cn.base.entity.VehicleInput;
 import cn.base.entity.VehicleMsg;
@@ -58,7 +63,7 @@ public class AdasCmdParser extends BaseThread {
         int iCount=transDataArray(cmdArray,0,iLen,transReadArray);
 
         if (iCount > 7) {
-            System.out.println("-----------"+ArraytoHexString(transReadArray,iCount));
+       //     System.out.println("-----------"+ArraytoHexString(transReadArray,iCount));
             if (((transReadArray[6] & 0xff) == 0x64) && ((transReadArray[7] & 0xff) == 0x50))//多媒体请求指令的 应答
             {
                 System.out.println("====================================================");
@@ -78,8 +83,11 @@ public class AdasCmdParser extends BaseThread {
                         byte[] cmdSend=videoEntity.getNextPackgeCmd();
                         //System.out.println("getNextPackageCmd    "+ArraytoHexString(cmdSend));
                         outputStream.write(cmdSend);
+                    }else {
+                        doEvent();
                     }
                 }else {
+                    doEventError();
                     System.out.println("视频数据解析失败");
                 }
                 //   System.out.println("------------------------------------");
@@ -113,11 +121,11 @@ public class AdasCmdParser extends BaseThread {
                     {
                         case 0x64://ADAS
                             Log.i("234","ADAS");
-                            parseGnm36(true,transReadArray,iCount);
+                            parseGnm36(0x64,true,transReadArray,iCount);
                             break;
                         case 0x65:// 人脸
                             Log.i("234","人脸");
-                            parseGnm36(false,transReadArray,iCount);
+                            parseGnm36(0x65,false,transReadArray,iCount);
                             break;
                     }
                 }
@@ -127,44 +135,44 @@ public class AdasCmdParser extends BaseThread {
 
     }
 
-    private void doMedia(int waisheCode,byte[] cmdArray,int iLen)
-    {
-        if(iLen>43)
-        {
-            int mediumType=cmdArray[39]&0xff;//媒体类型  00图片  1音频 2视频
-            int mediumId=((cmdArray[40]&0xff)<<24)+((cmdArray[41]&0xff)<<16)+((cmdArray[42]&0xff)<<8)+(cmdArray[43]&0xff);
+//    private void doMedia(int waisheCode,byte[] cmdArray,int iLen)
+//    {
+//        if(iLen>43)
+//        {
+//            int mediumType=cmdArray[39]&0xff;//媒体类型  00图片  1音频 2视频
+//            int mediumId=((cmdArray[40]&0xff)<<24)+((cmdArray[41]&0xff)<<16)+((cmdArray[42]&0xff)<<8)+(cmdArray[43]&0xff);
+//
+//            MediaCmd mediaCmd= new MediaCmd();
+//            mediaCmd.setWaiSheCode(waisheCode);
+//            mediaCmd.setInfoId(cmdArray[39]);
+//            mediaCmd.setMediaId(cmdArray,40);
+//            System.out.println("获取 取证 指令："+ArraytoHexString(mediaCmd.getCmd()));
+//            if(quzhengCmdInterface!=null)
+//            {
+//                quzhengCmdInterface.quzhengCmdArray(mediaCmd.getCmd());
+//            }
+//
+//
+//
+//            switch (mediumType)
+//            {
+//                case 0://图片
+//                    System.out.println("====图片");
+//                    break;
+//                case 1://音频
+//                    System.out.println("===音频");
+//                    break;
+//                case 2://视频
+//                    System.out.println("===视频");
+//                    break;
+//
+//            }
+//            System.out.println("媒体ID="+mediumId);
+//        }
+//
+//    }
 
-            MediaCmd mediaCmd= new MediaCmd();
-            mediaCmd.setWaiSheCode(waisheCode);
-            mediaCmd.setInfoId(cmdArray[39]);
-            mediaCmd.setMediaId(cmdArray,40);
-            System.out.println("获取 取证 指令："+ArraytoHexString(mediaCmd.getCmd()));
-            if(quzhengCmdInterface!=null)
-            {
-                quzhengCmdInterface.quzhengCmdArray(mediaCmd.getCmd());
-            }
-
-
-
-            switch (mediumType)
-            {
-                case 0://图片
-                    System.out.println("====图片");
-                    break;
-                case 1://音频
-                    System.out.println("===音频");
-                    break;
-                case 2://视频
-                    System.out.println("===视频");
-                    break;
-
-            }
-            System.out.println("媒体ID="+mediumId);
-        }
-
-    }
-
-    private void doMedia(byte[] cmdArray,int iLen)
+  /*  private void doMedia(byte[] cmdArray,int iLen)
     {
         if(iLen>43)
         {
@@ -200,6 +208,12 @@ public class AdasCmdParser extends BaseThread {
         }
 
     }
+*/
+
+
+
+    List<AdasTableData> adasEventList = Collections.synchronizedList(new ArrayList<AdasTableData>());
+
 
     private void parseGnm36(int waisheCode,boolean isAdas,byte[] cmdArray,int iLen)
     {
@@ -221,23 +235,60 @@ public class AdasCmdParser extends BaseThread {
         String strTemp="";
         if(iLen>43)
         {
-            int tempInforId=(cmdArray[39]&0xff);
-            int tempMediaId=((cmdArray[40]&0xff)<<24)+((cmdArray[41]&0xff)<<16)+((cmdArray[42]&0xff)<<8)+(cmdArray[43]&0xff);
 
-            switch (tempInforId)
-            {
-                case 0:
-                    strTemp=tempInforId+"_"+tempMediaId+".jpg";
-                    break;
-                case 1:
-                    break;
-                case 2:
-                    strTemp=tempInforId+"_"+tempMediaId+".mp4";
-                    break;
+            int count=(iLen-39)/5;
+            for (int i = 0; i < count; i++) {
+                int iStart=i*5;
+                int tempInforId=(cmdArray[39+iStart]&0xff);
+                int tempMediaId=((cmdArray[39+iStart+1]&0xff)<<24)+((cmdArray[39+iStart+2]&0xff)<<16)+((cmdArray[39+iStart+3]&0xff)<<8)+(cmdArray[39+iStart+4]&0xff);
+
+                switch (tempInforId)
+                {
+                    case 0:
+                        strTemp=tempInforId+"_"+tempMediaId+".jpg";
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        strTemp=tempInforId+"_"+tempMediaId+".mp4";
+                        break;
+                }
+                String imagePath= Config.prefixStr+strTemp;
+                System.out.println("======================="+imagePath);
+                adasTableData.setImagePath(imagePath);
+
+
+
+
+
+
+                MediaCmd mediaCmd= new MediaCmd();
+                mediaCmd.setWaiSheCode(waisheCode);
+                mediaCmd.setInfoId(cmdArray[39+iStart]);
+                mediaCmd.setMediaId(cmdArray,40+iStart);
+           //     System.out.println("获取 取证 指令："+ArraytoHexString(mediaCmd.getCmd()));
+                adasTableData.addCmd(mediaCmd.getCmd());
+
             }
+
+
+//            int tempInforId=(cmdArray[39]&0xff);
+//            int tempMediaId=((cmdArray[40]&0xff)<<24)+((cmdArray[41]&0xff)<<16)+((cmdArray[42]&0xff)<<8)+(cmdArray[43]&0xff);
+//
+//            switch (tempInforId)
+//            {
+//                case 0:
+//                    strTemp=tempInforId+"_"+tempMediaId+".jpg";
+//                    break;
+//                case 1:
+//                    break;
+//                case 2:
+//                    strTemp=tempInforId+"_"+tempMediaId+".mp4";
+//                    break;
+//            }
         }
-        String imagePath= Config.prefixStr+strTemp;
-        System.out.println("======================="+imagePath);
+//        String imagePath= Config.prefixStr+strTemp;
+//        System.out.println("======================="+imagePath);
         if(isAdas)
         {
             baseInt=100;
@@ -245,7 +296,7 @@ public class AdasCmdParser extends BaseThread {
             {
                 case 0x01:
                     adasTableData.setEventName("前向碰撞报警(请注意车距)");
-                    adasTableData.setImagePath(imagePath);
+                //    adasTableData.setImagePath(imagePath);
                     //                                                               MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","前向碰撞报警(请注意车距)");
                     break;
@@ -256,14 +307,14 @@ public class AdasCmdParser extends BaseThread {
                         case 0x01:
                             baseInt+=5;
                             adasTableData.setEventName("左侧车道偏离报警");
-                            adasTableData.setImagePath(imagePath);
+                      //      adasTableData.setImagePath(imagePath);
                             //                                                                MyApplication.getInstance().addAdasData(adasTableData);
                             Log.i("234","左侧车道偏离报警");
                             break;
                         case 0x02:
                             baseInt+=6;
                             adasTableData.setEventName("右侧车道偏离报警");
-                            adasTableData.setImagePath(imagePath);
+                      //      adasTableData.setImagePath(imagePath);
                             //                                                               MyApplication.getInstance().addAdasData(adasTableData);
                             Log.i("234","右侧车道偏离报警");
                             break;
@@ -271,37 +322,37 @@ public class AdasCmdParser extends BaseThread {
                     break;
                 case 0x03:
                     adasTableData.setEventName("车距过近报警");
-                    adasTableData.setImagePath(imagePath);
+                 //   adasTableData.setImagePath(imagePath);
                     //                                                              MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","车距过近报警");
                     break;
                 case 0x04:
                     adasTableData.setEventName("行人碰撞报警");
-                    adasTableData.setImagePath(imagePath);
+                 //   adasTableData.setImagePath(imagePath);
                     //                                                               MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","行人碰撞报警");
                     break;
                 case 0x05:
                     adasTableData.setEventName("频繁变道报警");
-                    adasTableData.setImagePath(imagePath);
+                //    adasTableData.setImagePath(imagePath);
                     //                                                               MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","频繁变道报警");
                     break;
                 case 0x06:
                     adasTableData.setEventName("道路标识超限报警");
-                    adasTableData.setImagePath(imagePath);
+                //    adasTableData.setImagePath(imagePath);
                     //                                                              MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","道路标识超限报警");
                     break;
                 case 0x10:
                     adasTableData.setEventName("道路标志识别事件");
-                    adasTableData.setImagePath(imagePath);
+              //      adasTableData.setImagePath(imagePath);
                     //                                                              MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","道路标志识别事件");
                     break;
                 case 0x11:
                     adasTableData.setEventName("主动抓拍事件");
-                    adasTableData.setImagePath(imagePath);
+             //       adasTableData.setImagePath(imagePath);
                     //                                                              MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","主动抓拍事件");
                     break;
@@ -319,72 +370,124 @@ public class AdasCmdParser extends BaseThread {
             {
                 case 0x01:
                     adasTableData.setEventName("疲劳驾驶报警");
-                    adasTableData.setImagePath(imagePath);
+            //        adasTableData.setImagePath(imagePath);
                     //                                                              MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","疲劳驾驶报警");
                     break;
                 case 0x02:
                     adasTableData.setEventName("接打电话报警");
-                    adasTableData.setImagePath(imagePath);
+                 //   adasTableData.setImagePath(imagePath);
                     //                                                              MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","接打电话报警");
                     break;
                 case 0x03:
                     adasTableData.setEventName("抽烟报警");
-                    adasTableData.setImagePath(imagePath);
+                  //  adasTableData.setImagePath(imagePath);
                     //                                                             MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","抽烟报警");
                     break;
                 case 0x04:
                     adasTableData.setEventName("分神驾驶报警");
-                    adasTableData.setImagePath(imagePath);
+                //    adasTableData.setImagePath(imagePath);
                     //                                                             MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","分神驾驶报警");
                     break;
                 case 0x05:
                     adasTableData.setEventName("驶员异常报警---遮挡");
-                    adasTableData.setImagePath(imagePath);
+                 //   adasTableData.setImagePath(imagePath);
                     //                                                             MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","驾驶员异常报警---遮挡");
                     break;
                 case 0x06:
                     adasTableData.setEventName("打哈欠");
-                    adasTableData.setImagePath(imagePath);
+                 //   adasTableData.setImagePath(imagePath);
                     //                                                             MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","打哈欠");
                     break;
                 case 0x10:
                     adasTableData.setEventName("主动抓拍事件");
-                    adasTableData.setImagePath(imagePath);
+                //    adasTableData.setImagePath(imagePath);
                     //                                                              MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","主动抓拍事件");
                     break;
                 case 0x11:
                     adasTableData.setEventName("驾驶员变更 事件");
-                    adasTableData.setImagePath(imagePath);
+                 //   adasTableData.setImagePath(imagePath);
                    //                                                              MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","驾驶员变更 事件");
                     break;
                 case 0x12:
                     adasTableData.setEventName("驾驶员识别");
-                    adasTableData.setImagePath(imagePath);
+                 //   adasTableData.setImagePath(imagePath);
                     //                                                             MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","驾驶员识别");
                     break;
 
             }
         }
-
-        senRenMsg(baseInt+eventType,adasTableData.getImagePath());
-        System.out.println("=================  "+adasTableData.toString());//打印内容   驶员异常报警---遮挡   /mnt/sdcard/adas/k77G_0_1353.jpg
-
-        doMedia(waisheCode,cmdArray,iLen);//取证
+        adasTableData.setRenCode(baseInt+eventType);
+        adasEventList.add(adasTableData);
+        doEvent();
     }
 
+    private void doEvent()
+    {
+        if(!adasEventList.isEmpty())
+        {
+         //   System.out.println("===========list size="+adasEventList.size());
+            AdasTableData item= adasEventList.get(0);
+            byte[] cmd=item.getCmd();
+            if(cmd==null)
+            {
+                senRenMsg(item);
+                adasEventList.remove(0);
+            }else {
+                //取证
+                if(quzhengCmdInterface!=null)
+                {
+                    System.out.println("==========发送指令");
+                     quzhengCmdInterface.quzhengCmdArray(cmd);
+                }
+            }
+        }
+    }
+
+
+    private void doEventError()
+    {
+        if(!adasEventList.isEmpty())
+        {
+            //   System.out.println("===========list size="+adasEventList.size());
+            AdasTableData item= adasEventList.get(0);
+            item.doRecvMediaError();//处理错误的请求
+            byte[] cmd=item.getCmd();
+            if(cmd==null)
+            {
+                senRenMsg(item);
+                adasEventList.remove(0);
+            }else {
+                //取证
+                if(quzhengCmdInterface!=null)
+                {
+                    System.out.println("==========发送指令");
+                    quzhengCmdInterface.quzhengCmdArray(cmd);
+                }
+            }
+        }
+    }
+
+
+
     int baseInt;
+
+    private void senRenMsg(AdasTableData event)
+    {
+        senRenMsg(event.getRenCode(),event.getRenStrMsg());
+    }
     //给任海涛发数据
     private void senRenMsg(int code,String strMsg)
     {
+     //   System.out.println("====================================="+strMsg);
         //把数据通知给 任海涛
         VehicleInput vehicleInput = new VehicleInput();
         vehicleInput.setType(code);
@@ -392,7 +495,7 @@ public class AdasCmdParser extends BaseThread {
         ErrorMessageUtil.getInstance().notifyMsg(vehicleInput);
     }
     //事件 /报
-    private void parseGnm36(boolean isAdas,byte[] cmdArray,int iLen)
+  /*  private void parseGnm36(boolean isAdas,byte[] cmdArray,int iLen)
     {
 //        0x01 前向碰撞报警
 //        0x02 车道偏离报警
@@ -505,63 +608,75 @@ public class AdasCmdParser extends BaseThread {
             {
                 case 0x01:
                     adasTableData.setEventName("疲劳驾驶报警");
-                    adasTableData.setImagePath(imagePath);
+               //     adasTableData.setImagePath(imagePath);
                     //                                                              MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","疲劳驾驶报警");
                     break;
                 case 0x02:
                     adasTableData.setEventName("接打电话报警");
-                    adasTableData.setImagePath(imagePath);
+             //       adasTableData.setImagePath(imagePath);
                     //                                                              MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","接打电话报警");
                     break;
                 case 0x03:
                     adasTableData.setEventName("抽烟报警");
-                    adasTableData.setImagePath(imagePath);
+                //    adasTableData.setImagePath(imagePath);
                     //                                                               MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","抽烟报警");
                     break;
                 case 0x04:
                     adasTableData.setEventName("分神驾驶报警");
-                    adasTableData.setImagePath(imagePath);
+               //     adasTableData.setImagePath(imagePath);
                     //                                                              MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","分神驾驶报警");
                     break;
                 case 0x05:
                     adasTableData.setEventName("驶员异常报警---遮挡");
-                    adasTableData.setImagePath(imagePath);
+               //     adasTableData.setImagePath(imagePath);
                     //                                                               MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","驾驶员异常报警---遮挡");
                     break;
                 case 0x06:
                     adasTableData.setEventName("打哈欠");
-                    adasTableData.setImagePath(imagePath);
+                //    adasTableData.setImagePath(imagePath);
                     //                                                               MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","打哈欠");
                     break;
                 case 0x10:
                     adasTableData.setEventName("主动抓拍事件");
-                    adasTableData.setImagePath(imagePath);
+               //     adasTableData.setImagePath(imagePath);
                     //                                                               MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","主动抓拍事件");
                     break;
                 case 0x11:
                     adasTableData.setEventName("驾驶员变更 事件");
-                    adasTableData.setImagePath(imagePath);
+               //     adasTableData.setImagePath(imagePath);
                     //                                                               MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","驾驶员变更 事件");
                     break;
                 case 0x12:
                     adasTableData.setEventName("驾驶员识别");
-                    adasTableData.setImagePath(imagePath);
+                //    adasTableData.setImagePath(imagePath);
                     //                                                              MyApplication.getInstance().addAdasData(adasTableData);
                     Log.i("234","驾驶员识别");
                     break;
 
             }
         }
-        doMedia(cmdArray,iLen);//取证
-    }
+
+
+        //取证
+        if(quzhengCmdInterface!=null)
+        {
+            ArrayList<byte[]> list= adasTableData.getCmdList();
+          //  quzhengCmdInterface.quzhengCmdArray(mediaCmd.getCmd());
+            for (int i = 0; i < list.size(); i++) {
+                quzhengCmdInterface.quzhengCmdArray(list.get(i));
+            }
+        }
+
+    //    doMedia(cmdArray,iLen);//取证
+    }*/
     protected String ArraytoHexString(byte[] linArray)
     {
         int iLen=linArray.length;
